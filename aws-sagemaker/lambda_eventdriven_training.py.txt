@@ -1,0 +1,32 @@
+import boto3
+import json
+
+
+def lambda_handler(event, context):
+    # TODO implement
+    training_job_name = 'huggingface-pytorch-training-2023-12-15-07-37-02-392'
+
+    sm = boto3.client('sagemaker')
+    response = sm.describe_training_job(TrainingJobName=training_job_name)
+    
+    new_job_name = "huggingface-triallss"
+
+    training_params = {
+        'AlgorithmSpecification': response['AlgorithmSpecification'],
+        'RoleArn': 'arn:aws:iam::523272053639:role/service-role/AmazonSageMaker-ExecutionRole-20231214T100902',
+        'OutputDataConfig': response['OutputDataConfig'],
+        'ResourceConfig': response['ResourceConfig'],
+        'StoppingCondition': response['StoppingCondition'],
+        'TrainingJobName': new_job_name,
+        'HyperParameters': response['HyperParameters'],
+        'InputDataConfig': response['InputDataConfig'],
+    }
+    
+    sm.create_training_job(**training_params)
+    
+
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!'+ str(response))
+    }

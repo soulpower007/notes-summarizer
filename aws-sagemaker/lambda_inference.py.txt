@@ -1,0 +1,61 @@
+import boto3
+import json
+import requests
+
+def lambda_handler(event, context):
+
+    print("event: ", event) 
+    note_id = json.loads(event['body'])['noteId']
+    summary = json.loads(event['body'])['content']
+    # Replace 'your-endpoint-name' with the actual name of your SageMaker endpoint
+    endpoint_name = 'huggingface-pytorch-inference-2023-12-22-09-50-53-883'
+
+    # Create a SageMaker runtime client
+    sagemaker_runtime = boto3.client('sagemaker-runtime',region_name='us-east-2')
+    
+    
+    # Example input data (replace this with your actual input data)
+    input_data = {"inputs": summary}
+
+    # Convert input data to JSON string and encode to bytes
+    payload = json.dumps(input_data).encode('utf-8')
+
+    # Invoke SageMaker endpoint
+    response = sagemaker_runtime.invoke_endpoint(
+        EndpointName=endpoint_name,
+        ContentType='application/json',
+        Body=payload
+    )
+
+    # Process the response
+    result = response['Body'].read().decode('utf-8')
+    print(result)
+    
+    # Make a POST request to the API Gateway URL
+    print(result[21:-3])
+    # api_gateway_url = "https://qfhdl3ixb1.execute-api.us-east-1.amazonaws.com/test/content"
+    # headers = {'Content-Type': 'application/json'}
+    # api_response = requests.post(api_gateway_url, body=json.dumps({"noteId":"S_21",'content': result[21:-3]}), headers=headers)
+    
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    table = dynamodb.Table('notes-table')
+    
+    table.put_item(
+        Item={
+            'NoteId': "Summary of "+note_id,
+            'Content': result[21:-3]
+        }
+    )
+    
+    return {
+        'statusCode': 200,
+        'headers':{
+            'Access-Control-Allow-Headers':'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': '*'
+        },
+        'body': json.dumps({"summary": "Summary: "+ result[21:-3]})
+        
+    }
+
+
