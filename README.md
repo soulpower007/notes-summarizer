@@ -11,4 +11,7 @@ Implemented 2 types of ML Ops Pipeline
 
 ![alt-text](https://github.com/soulpower007/notes-summarizer/blob/main/Architecture_Diagram_Sagemaker.drawio.png?raw=true)
 
-312383794249.dkr.ecr.us-east-1.amazonaws.com/text-s
+
+References
+ - Krish Naik for Method 1
+ - Numerous AWS blog posts and opensource resources for Method 2
